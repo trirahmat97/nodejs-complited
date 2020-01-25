@@ -2,34 +2,40 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getIndex = (req, res, next) => {
-    Product.fetcAll(products => {
-        res.render('shop/index', {
-            prods: products,
-            pageTitle: 'index',
-            path: '/'
-        });
-    });
+    Product.fetcAll()
+        .then(([rows, fieldData]) => {
+            res.render('shop/product-list', {
+                prods: rows,
+                pageTitle: 'shop',
+                path: '/'
+            });
+        })
+        .catch(err => console.log(err));
 }
 
 exports.getProducts = (req, res, next) => {
-    Product.fetcAll(products => {
-        res.render('shop/product-list', {
-            prods: products,
-            pageTitle: 'shop',
-            path: '/products'
-        });
-    });
+    Product.fetcAll()
+        .then(([rows, fieldData]) => {
+            res.render('shop/product-list', {
+                prods: rows,
+                pageTitle: 'shop',
+                path: '/products'
+            });
+        })
+        .catch(err => console.log(err));
 };
 
 exports.getProduct = (req, res, next) => {
     const productId = req.params.productId;
-    Product.findById(productId, product => {
-        res.render('shop/product-detail', {
-            product: product,
-            pageTitle: product.title,
-            path: '/products'
+    Product.findById(productId)
+        .then(([product]) => {
+            res.render('shop/product-detail', {
+                product: product[0],
+                pageTitle: product.title,
+                path: '/products'
+            });
         })
-    });
+        .catch(err => console.log(err));
 }
 
 exports.getCart = (req, res, next) => {
@@ -39,7 +45,10 @@ exports.getCart = (req, res, next) => {
             for (product of products) {
                 const cartProductData = cart.products.find(prod => prod.id === product.id);
                 if (cartProductData) {
-                    cartProduct.push({productData: product, qty:cartProductData.qty});
+                    cartProduct.push({
+                        productData: product,
+                        qty: cartProductData.qty
+                    });
                 }
             }
             res.render('shop/cart', {
